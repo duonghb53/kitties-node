@@ -18,7 +18,7 @@ frame_support::construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		TemplateModule: pallet_kitties::{Pallet, Call, Storage, Event<T>},
+		SubstrateKitties: pallet_kitties::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
