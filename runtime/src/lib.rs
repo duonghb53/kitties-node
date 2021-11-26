@@ -482,7 +482,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
 			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
-			list_benchmark!(list, extra, pallet_template, SubstrateKitties);
+			list_benchmark!(list, extra, pallet_kitties, SubstrateKitties);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
