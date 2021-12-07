@@ -301,11 +301,21 @@ pub mod pallet {
 	//** Our helper functions.**//
 
 	impl<T: Config> Pallet<T> {
+		/*
 		fn gen_gender() -> Gender {
 			let random = T::KittyRandomness::random(&b"gender"[..]).0;
 			match random.as_ref()[0] % 2 {
-				0 => Gender::Male,
-				_ => Gender::Female,
+				0 => Gender::Male,   // If 8 bit first is even --> Male
+				_ => Gender::Female, // Else Female
+			}
+		}
+		*/
+
+		fn gen_gender() -> (Gender, [u8; 16])  {	
+			let dna = Self::gen_dna();		
+			match dna[0] % 2 {
+				0 => (Gender::Male, dna),   // If 8 bit first is even --> Male
+				_ => (Gender::Female, dna), // Else Female
 			}
 		}
 
@@ -321,11 +331,25 @@ pub mod pallet {
 			let dna1 = Self::kitties(parent1).ok_or(<Error<T>>::KittyNotExist)?.dna;
 			let dna2 = Self::kitties(parent2).ok_or(<Error<T>>::KittyNotExist)?.dna;
 
+			/*
 			let mut new_dna = Self::gen_dna();
-			for i in 0..new_dna.len() {
+			//for i in 0..new_dna.len() {
 				new_dna[i] = (new_dna[i] & dna1[i]) | (!new_dna[i] & dna2[i]);
 			}
+			*/
+
+			let new_dna = Self::combine_dna(dna1, dna2);
+
 			Ok(new_dna)
+		}
+
+		// Helper to combine gen from parent
+		pub fn combine_dna(parent1: [u8; 16], parent2: [u8; 16]) -> [u8; 16] {
+			let mut new_dna = Self::gen_dna();
+			for i in 0..new_dna.len() {
+				new_dna[i] = parent1[i] & parent2[i];
+			}
+			new_dna
 		}
 
 		// Helper to mint a Kitty.
@@ -334,12 +358,16 @@ pub mod pallet {
 			dna: Option<[u8; 16]>,
 			gender: Option<Gender>,
 		) -> Result<T::Hash, Error<T>> {
-			let kitty = Kitty::<T> {
+			let mut kitty = Kitty::<T> {
 				dna: dna.unwrap_or_else(Self::gen_dna),
 				price: None,
-				gender: gender.unwrap_or_else(Self::gen_gender),
+				gender: Gender::Male,
 				owner: owner.clone(),
 			};
+
+			let data = Self::gen_gender();
+			kitty.dna = data.1;
+			kitty.gender = data.0;
 
 			let kitty_id = T::Hashing::hash_of(&kitty);
 
@@ -361,7 +389,7 @@ pub mod pallet {
 				None => Err(<Error<T>>::KittyNotExist),
 			}
 		}
-
+		
 		#[transactional]
 		pub fn transfer_kitty_to(kitty_id: &T::Hash, to: &T::AccountId) -> Result<(), Error<T>> {
 			let mut kitty = Self::kitties(&kitty_id).ok_or(<Error<T>>::KittyNotExist)?;
